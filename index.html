@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Project Generator Premium</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+/* GLOBAL */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+body{background:linear-gradient(135deg,#eef2ff,#fefcfb);color:#1e293b;min-height:100vh;}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;}
+.logo{font-size:22px;font-weight:600;background:linear-gradient(45deg,#6366f1,#a855f7);-webkit-background-clip:text;color:transparent;}
+.nav{display:flex;gap:20px;align-items:center;cursor:pointer;}
+.login-btn{background:linear-gradient(45deg,#6366f1,#a855f7);color:white;border:none;padding:10px 18px;border-radius:12px;cursor:pointer;transition:.3s;}
+.login-btn:hover{transform:scale(1.05);}
+
+/* SIDEBAR */
+.menu-btn{position:fixed;top:90px;left:25px;font-size:28px;cursor:pointer;z-index:1000;}
+.sidebar{position:fixed;top:0;left:-280px;width:280px;height:100%;background:rgba(255,255,255,0.95);backdrop-filter:blur(25px);padding:20px;transition:.4s;border-right:1px solid rgba(200,200,200,0.3);z-index:999;}
+.sidebar.active{left:0;}
+.sidebar h3{margin-bottom:20px;}
+.sidebar div{padding:12px;border-radius:12px;margin-bottom:12px;cursor:pointer;transition:.2s;}
+.sidebar div:hover{background:rgba(99,102,241,0.1);}
+
+/* PRICING MENU */
+.pricing-menu{display:none;position:fixed;top:80px;right:0;width:320px;background:white;border-left:1px solid #ddd;padding:20px;box-shadow:-5px 0 25px rgba(0,0,0,0.08);z-index:1000;}
+.plan{padding:15px;border-radius:15px;margin-bottom:15px;background:#f3f4f6;position:relative;cursor:pointer;transition:.3s;}
+.plan:hover{background:#e0e7ff;}
+.plan .original{text-decoration:line-through;color:#9ca3af;font-weight:500;}
+.plan .discount{font-weight:600;color:#6366f1;margin-left:8px;}
+.plan .badge{position:absolute;top:10px;right:10px;background:#ef4444;color:white;padding:4px 8px;font-size:12px;border-radius:6px;}
+
+/* HERO */
+.hero{text-align:center;margin-top:40px;}
+.hero h1{font-size:42px;font-weight:600;}
+.tabs{margin-top:15px;}
+.tab{display:inline-block;padding:10px 18px;border-radius:12px;margin:5px;background:#e2e8f0;cursor:pointer;transition:.2s;}
+.tab.active{background:linear-gradient(45deg,#6366f1,#a855f7);color:white;}
+
+/* MAIN CARD */
+.card{max-width:1200px;margin:40px auto;display:flex;gap:25px;flex-wrap:wrap;}
+.glass{flex:1;min-width:280px;background:rgba(255,255,255,0.7);backdrop-filter:blur(25px);border-radius:25px;padding:30px;box-shadow:0 20px 40px rgba(0,0,0,0.08);transition:.3s;}
+.glass:hover{box-shadow:0 25px 50px rgba(0,0,0,0.12);}
+
+textarea{width:100%;height:220px;border:none;outline:none;border-radius:15px;padding:20px;font-size:15px;background:rgba(255,255,255,0.8);}
+button, .upload{margin-top:12px;}
+.upload{border:2px dashed #c7d2fe;padding:20px;text-align:center;border-radius:15px;cursor:pointer;transition:.3s;}
+.upload:hover{background:rgba(99,102,241,0.05);}
+.generate{width:100%;margin-top:25px;padding:15px;border:none;border-radius:15px;background:gray;color:white;font-size:15px;transition:.3s;}
+.generate.active{background:linear-gradient(45deg,#6366f1,#a855f7);}
+
+/* OUTPUT */
+.output{max-width:1200px;margin:30px auto;}
+.output-card{background:white;border-radius:20px;padding:25px;margin-top:15px;box-shadow:0 15px 35px rgba(0,0,0,0.08);}
+
+/* PLAN NOTICE */
+#planNotice{margin-top:15px;font-weight:500;color:#ef4444;}
+
+/* RESPONSIVE */
+@media(max-width:1024px){.card{flex-direction:column;gap:20px;}}
+@media(max-width:480px){header{flex-direction:column;gap:15px;padding:15px;} .hero h1{font-size:32px;} .tabs{display:flex;flex-wrap:wrap;justify-content:center;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AI Generator</div>
+  <div class="nav">
+    <span onclick="togglePricing()">Pricing</span>
+    <select><option>English</option></select>
+    <button class="login-btn">Login</button>
+  </div>
+</header>
+
+<div class="menu-btn" onclick="toggleMenu()">☰</div>
+
+<div class="sidebar" id="sidebar">
+  <h3>Menu</h3>
+  <div onclick="showGenerate()">Generate</div>
+  <div onclick="showHistory()">History</div>
+  <div onclick="togglePricing()">Pricing</div>
+  <div>Settings</div>
+</div>
+
+<div class="pricing-menu" id="pricingMenu">
+  <h3>Plans & Deals</h3>
+
+  <div class="plan" onclick="upgradePlan('free')">
+    <span class="original">₹0</span> <span class="discount">FREE</span>
+    <div style="font-size:12px;color:#6b7280;margin-top:4px;">Duration: Unlimited</div>
+  </div>
+
+  <div class="plan" onclick="upgradePlan('monthly')">
+    <span class="original">₹199</span> <span class="discount">₹99</span>
+    <span class="badge">Most Popular</span>
+    <div style="font-size:12px;color:#6b7280;margin-top:4px;">Duration: 1 Month</div>
+    <div id="timerMonthly" style="font-size:12px;color:#ef4444;margin-top:2px;"></div>
+  </div>
+
+  <div class="plan" onclick="upgradePlan('6months')">
+    <span class="original">₹499</span> <span class="discount">₹199</span>
+    <span class="badge">Best Value</span>
+    <div style="font-size:12px;color:#6b7280;margin-top:4px;">Duration: 6 Months</div>
+    <div id="timer6Months" style="font-size:12px;color:#ef4444;margin-top:2px;"></div>
+  </div>
+
+  <div class="plan" onclick="upgradePlan('lifetime')">
+    <span class="original">₹999</span> <span class="discount">₹299</span>
+    <span class="badge">Limited Offer</span>
+    <div style="font-size:12px;color:#6b7280;margin-top:4px;">Duration: Lifetime</div>
+    <div id="timerLifetime" style="font-size:12px;color:#ef4444;margin-top:2px;"></div>
+  </div>
+</div>
+
+<div class="hero">
+  <h1>AI Project Generator</h1>
+  <div class="tabs">
+    <span class="tab active">Standard</span>
+    <span class="tab">Professional 🔒</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="glass">
+    <textarea id="text" placeholder="Type or speak..."></textarea>
+    <button onclick="voice()">🎤 Speak</button>
+    <div class="upload" onclick="upload()">Upload File</div>
+  </div>
+
+  <div class="glass">
+    <label>Create format</label>
+    <select id="software">
+      <option>Microsoft Word</option>
+      <option>Microsoft Excel</option>
+      <option>Microsoft Access</option>
+      <option>Microsoft PowerPoint</option>
+      <option>Microsoft Outlook</option>
+      <option>Microsoft OneNote</option>
+      <option>Google Docs</option>
+      <option>Google Sheets</option>
+      <option>Google Slides</option>
+      <option>Google Forms</option>
+      <option>LibreOffice</option>
+      <option>Apache OpenOffice</option>
+      <option>WPS Office</option>
+      <option>Zoho Office Suite</option>
+      <option>Tally</option>
+      <option>Busy Accounting Software</option>
+      <option>QuickBooks</option>
+      <option>Notepad</option>
+      <option>WordPad</option>
+    </select>
+    <button id="generate" class="generate">Generate</button>
+    <div id="planNotice"></div>
+  </div>
+</div>
+
+<div class="output" id="output"></div>
+
+<script>
+/* SIDEBAR */
+function toggleMenu(){document.getElementById("sidebar").classList.toggle("active");}
+function togglePricing(){const menu=document.getElementById("pricingMenu");menu.style.display=menu.style.display==='block'?'none':'block';}
+
+/* PLAN SYSTEM */
+let userPlan='free';
+function upgradePlan(plan){
+    userPlan=plan;
+    alert('Upgraded to '+plan+' plan!');
+    document.getElementById("pricingMenu").style.display='none';
+    updatePlanNotice();
+}
+function updatePlanNotice(){
+    const notice=document.getElementById("planNotice");
+    if(userPlan==='free'){notice.innerHTML='Upgrade to Pro for full features 🔒';} 
+    else{notice.innerHTML='Pro Mode enabled ✅';}
+}
+
+/* PLAN TIMERS */
+let timerMonthly=3600; // 1 hour offer
+let timer6Months=86400; // 1 day offer
+let timerLifetime=43200; // 12 hours offer
+
+setInterval(()=>{
+    if(timerMonthly>0){timerMonthly--;document.getElementById("timerMonthly").innerText="Offer ends in "+formatTime(timerMonthly);}
+    if(timer6Months>0){timer6Months--;document.getElementById("timer6Months").innerText="Offer ends in "+formatTime(timer6Months);}
+    if(timerLifetime>0){timerLifetime--;document.getElementById("timerLifetime").innerText="Offer ends in "+formatTime(timerLifetime);}
+},1000);
+
+function formatTime(sec){
+    let h=Math.floor(sec/3600);
+    let m=Math.floor((sec%3600)/60);
+    let s=sec%60;
+    return `${h}h ${m}m ${s}s`;
+}
+
+/* VOICE */
+function voice(){
+    if(!('webkitSpeechRecognition' in window)){alert('Your browser does not support voice input');return;}
+    const rec=new webkitSpeechRecognition();
+    rec.onresult=e=>{document.getElementById("text").value=e.results[0][0].transcript;};
+    rec.start();
+}
+
+/* UPLOAD */
+function upload(){alert("Upload file feature coming soon");}
+
+/* GENERATE */
+const btn=document.getElementById("generate");
+const txt=document.getElementById("text");
+
+txt.addEventListener("input",()=>{if(txt.value){btn.classList.add("active");}else{btn.classList.remove("active");}});
+btn.onclick=()=>{
+    const output=document.getElementById("output");
+    const software=document.getElementById("software").value;
+    if(userPlan==='free' && txt.value.length>50){alert("Free plan limit! Upgrade for full access.");return;}
+    output.innerHTML=`<div class="output-card"><h3>${software} Project</h3><p>${txt.value}</p></div>`;
+};
+
+updatePlanNotice();
+</script>
+
+</body>
+</html>
